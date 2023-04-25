@@ -14,13 +14,15 @@ import com.vk.api.sdk.auth.VKAuthCallback;
 import com.vk.api.sdk.auth.VKScope;
 import com.vk.api.sdk.exceptions.VKAuthException;
 
+import java.util.Arrays;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity {
 
-    private VKScope[] scope = new VKScope[]{VKScope.MESSAGES, VKScope.FRIENDS, VKScope.WALL};
-    VKAccessToken g;
+    private VKScope[] scope = new VKScope[]{VKScope.OFFLINE,VKScope.FRIENDS,VKScope.WALL, VKScope.GROUPS};
+    static VKAccessToken g;
     @BindView(R.id.btnLogin)
     Button btn;
 
@@ -31,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         btn.setOnClickListener(v -> {
-            VK.login(this);
+            VK.login(this, Arrays.asList(scope));
 
 
         });

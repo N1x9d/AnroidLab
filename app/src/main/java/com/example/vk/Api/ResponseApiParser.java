@@ -29,6 +29,7 @@ public class ResponseApiParser <T> implements VKApiJSONResponseParser<ArrayList<
                 JSONArray ja = jo.getJSONArray("items");
                 ArrayList<T> r = new ArrayList<>(ja.length());
                 for (int i = 0; i < ja.length(); i++) {
+                    JSONObject users = ja.getJSONObject(i);
                     T user = new Gson().fromJson(ja.getJSONObject(i).toString() , type);
                     r.add(user);
                 }
