@@ -40,7 +40,7 @@ public class VKGetNewsCommands extends ApiCommand<List<NewsPost>> {
             if (start_from != 0 && end_time != 0) {
                 // if no uids, send user's data
                 VKMethodCall call = new VKMethodCall.Builder()
-                        .method("newsfeed.get")
+                        .method("newsfeed.getComments")
                         .args("filters", "post")
                         .args("start_from", start_from)
                         .args("start_time", start_time)

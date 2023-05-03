@@ -1,6 +1,7 @@
 package com.example.vk;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 
@@ -13,6 +14,7 @@ import com.example.vk.Api.VKFriendsCommand;
 import com.example.vk.Api.VKGetNewsCommands;
 import com.example.vk.adapters.NewsFeedAdapter;
 import com.example.vk.model.NewsPost;
+import com.google.gson.Gson;
 import com.vk.api.sdk.VK;
 import com.vk.api.sdk.VKApiCallback;
 import com.vk.api.sdk.VKApiManager;
@@ -46,14 +48,14 @@ public class MainActivity2 extends AppCompatActivity {
         ArrayList<NewsPost> friends = new ArrayList<>();
         Instant now = Instant.now();
         Instant yesterday = now.minus(1, ChronoUnit.DAYS);
-        VKAccessToken token = MainActivity.g;
         Context cntx = this;
+        MainActivity2 na = this;
         VKGetNewsCommands f = new VKGetNewsCommands(yesterday.toEpochMilli()/1000L, 0L, 1000, 0L);
         VK.execute(f, new VKApiCallback<List<NewsPost>>() {
             @Override
             public void success(List<NewsPost> friendsFriendsLists) {
                 friends.addAll(friendsFriendsLists);
-                news.setAdapter(new NewsFeedAdapter(friends));
+                news.setAdapter(new NewsFeedAdapter(friends, na));
                 news.setLayoutManager(new LinearLayoutManager(cntx));
             }
 
@@ -62,10 +64,10 @@ public class MainActivity2 extends AppCompatActivity {
 
             }
         });
-
-
-
-
-
+    }
+    public void CommentsOpen(NewsPost post){
+        Intent intent = new Intent(this, CommentActivity.class);
+        intent.putExtra("newsItem", new Gson().toJson(post));
+        startActivity(intent);
     }
 }

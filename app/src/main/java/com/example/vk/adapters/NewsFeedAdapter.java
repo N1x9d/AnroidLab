@@ -11,30 +11,30 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.vk.Api.VKPostLikeCommand;
+import com.example.vk.MainActivity2;
 import com.example.vk.R;
 import com.example.vk.model.ContentType;
 import com.example.vk.model.NewsPost;
 import com.vk.api.sdk.VK;
 import com.vk.api.sdk.VKApiCallback;
 import com.vk.sdk.api.base.dto.BaseBoolInt;
-import com.vk.sdk.api.base.dto.BaseLikesInfo;
 import com.vk.sdk.api.docs.dto.DocsDocPreviewPhotoSizes;
 import com.vk.sdk.api.wall.dto.WallWallpostAttachmentType;
 
 import java.io.InputStream;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.List;
 
 public class NewsFeedAdapter extends RecyclerView.Adapter<NewsFeedAdapter.ViewHolder> {
     private List<NewsPost> data;
+    private MainActivity2 mainActivity2;
 
-    public NewsFeedAdapter(List<NewsPost> data) {
+    public NewsFeedAdapter(List<NewsPost> data, MainActivity2 mainActivity2) {
         this.data = data;
+        this.mainActivity2 = mainActivity2;
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder{
@@ -110,20 +110,8 @@ public class NewsFeedAdapter extends RecyclerView.Adapter<NewsFeedAdapter.ViewHo
         @Override
         public void onClick(View v)
         {
-          final Integer[] likesInfo = {0};
-          VKPostLikeCommand vkl = new VKPostLikeCommand(item.sourceId, item.id, item.type.toString().toLowerCase() );
-          VK.execute(vkl, new VKApiCallback<Integer>() {
-            @Override
-            public void success(Integer baseLikesInfo) {
-              likesInfo[0] = baseLikesInfo;
-              holder.Like.setText("Liked");
-            }
+            mainActivity2.CommentsOpen(item);
 
-            @Override
-            public void fail(@NonNull Exception e) {
-
-            }
-          });
         }
       });
 
