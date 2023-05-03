@@ -1,4 +1,5 @@
 <resources>
-    <string name="app_name">VK</string>
-    <integer name="com_vk_sdk_AppId">51623511</integer>
+  <string name="app_name">VK</string>
+  <integer name="com_vk_sdk_AppId">51623511</integer>
+  <string name="title_activity_comment">CommentActivity</string>
 </resources>

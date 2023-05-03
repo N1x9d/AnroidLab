@@ -13,6 +13,7 @@ import com.vk.api.sdk.auth.VKAccessToken;
 import com.vk.api.sdk.auth.VKAuthCallback;
 import com.vk.api.sdk.auth.VKScope;
 import com.vk.api.sdk.exceptions.VKAuthException;
+import com.vk.api.sdk.utils.VKUtils;
 
 import java.util.Arrays;
 
@@ -32,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+      String[] fingerprints = VKUtils.getCertificateFingerprint(this, this.getPackageName());
         btn.setOnClickListener(v -> {
             VK.login(this, Arrays.asList(scope));
 

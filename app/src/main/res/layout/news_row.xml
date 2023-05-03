@@ -38,7 +38,10 @@
 
     <Button
         android:id="@+id/like_bat"
-        android:layout_width="30dp"
+        android:layout_width="80dp"
+        android:textSize="40px"
+        android:text="like"
+        android:textColor="@color/black"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -47,9 +50,37 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/image" />
 
-    <Button
+  <TextView
+    android:id="@+id/likes_count"
+    android:layout_width="38dp"
+    android:layout_height="22dp"
+    android:layout_marginStart="32dp"
+    android:layout_marginTop="24dp"
+    android:text="1337"
+    android:textSize="40px"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintStart_toEndOf="@+id/like_bat"
+    app:layout_constraintTop_toBottomOf="@+id/image"
+    app:layout_constraintHorizontal_bias="0.272" />
+
+  <TextView
+    android:id="@+id/comments_count"
+    android:layout_width="38dp"
+    android:layout_height="22dp"
+    android:layout_marginTop="24dp"
+    android:layout_marginEnd="8dp"
+    android:text="1337"
+    android:textSize="40px"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintEnd_toStartOf="@+id/comment_bat"
+    app:layout_constraintTop_toBottomOf="@+id/image"
+    app:layout_constraintHorizontal_bias="0.272" />
+
+  <Button
         android:id="@+id/comment_bat"
-        android:layout_width="30dp"
+        android:layout_width="80dp"
+        android:textSize="22px"
+        android:text="Comment"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         app:layout_constraintBottom_toBottomOf="parent"

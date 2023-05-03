@@ -6,20 +6,28 @@ import android.os.AsyncTask;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.vk.Api.VKPostLikeCommand;
 import com.example.vk.R;
 import com.example.vk.model.ContentType;
 import com.example.vk.model.NewsPost;
+import com.vk.api.sdk.VK;
+import com.vk.api.sdk.VKApiCallback;
+import com.vk.sdk.api.base.dto.BaseBoolInt;
+import com.vk.sdk.api.base.dto.BaseLikesInfo;
 import com.vk.sdk.api.docs.dto.DocsDocPreviewPhotoSizes;
 import com.vk.sdk.api.wall.dto.WallWallpostAttachmentType;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
 
 public class NewsFeedAdapter extends RecyclerView.Adapter<NewsFeedAdapter.ViewHolder> {
@@ -35,11 +43,21 @@ public class NewsFeedAdapter extends RecyclerView.Adapter<NewsFeedAdapter.ViewHo
 
         private final ImageView image;
 
+        private final Button Like;
+        private final Button Comment;
+        private final TextView like_count;
+        private final TextView comment_count;
+
+
         public ViewHolder(@NonNull View itemView) {
-            super(itemView);
-            textContent = itemView.findViewById(R.id.post_text);
-            authorName = itemView.findViewById(R.id.author_name);
-            image = itemView.findViewById(R.id.image);
+          super(itemView);
+          textContent = itemView.findViewById(R.id.post_text);
+          authorName = itemView.findViewById(R.id.author_name);
+          like_count = itemView.findViewById(R.id.likes_count);
+          comment_count = itemView.findViewById(R.id.comments_count);
+          image = itemView.findViewById(R.id.image);
+          Like = itemView.findViewById(R.id.like_bat);
+          Comment = itemView.findViewById(R.id.comment_bat);
 
         }
     }
@@ -55,6 +73,63 @@ public class NewsFeedAdapter extends RecyclerView.Adapter<NewsFeedAdapter.ViewHo
         NewsPost item = data.get(position);
         holder.authorName.setText(item.sourceId.toString());
         holder.textContent.setText(item.text);
+        if(item.likes.getCanLike() == BaseBoolInt.NO && item.likes.getUserLikes() == 1) {
+          holder.Like.setText("Liked");
+        } else if (item.likes.getCanLike() == BaseBoolInt.NO) {
+          holder.Like.setEnabled(false);
+        }
+      if(item.comments.getCanPost() == BaseBoolInt.NO){
+          holder.Comment.setEnabled(false);
+        }
+        StringBuilder sb = new StringBuilder();
+        holder.Like.setOnClickListener(new View.OnClickListener()
+        {
+          @Override
+          public void onClick(View v)
+          {
+
+            final Integer[] likesInfo = {0};
+            VKPostLikeCommand vkl = new VKPostLikeCommand(item.sourceId, item.id, item.type.toString().toLowerCase() );
+            VK.execute(vkl, new VKApiCallback<Integer>() {
+              @Override
+              public void success(Integer baseLikesInfo) {
+                likesInfo[0] = baseLikesInfo;
+                holder.Like.setText("Liked");
+              }
+
+              @Override
+              public void fail(@NonNull Exception e) {
+
+              }
+            });
+          }
+        });
+
+      holder.Comment.setOnClickListener(new View.OnClickListener()
+      {
+        @Override
+        public void onClick(View v)
+        {
+          final Integer[] likesInfo = {0};
+          VKPostLikeCommand vkl = new VKPostLikeCommand(item.sourceId, item.id, item.type.toString().toLowerCase() );
+          VK.execute(vkl, new VKApiCallback<Integer>() {
+            @Override
+            public void success(Integer baseLikesInfo) {
+              likesInfo[0] = baseLikesInfo;
+              holder.Like.setText("Liked");
+            }
+
+            @Override
+            public void fail(@NonNull Exception e) {
+
+            }
+          });
+        }
+      });
+
+        holder.like_count.setText(sb.append(item.likes.getCount()).toString());
+        sb = new StringBuilder("");
+        holder.comment_count.setText(sb.append(item.comments.getCount()).toString());
         for (ContentType content:
         item.attachments) {
             if(content.type == WallWallpostAttachmentType.PHOTO) {
