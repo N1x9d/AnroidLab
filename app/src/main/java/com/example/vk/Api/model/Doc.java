@@ -1,4 +1,4 @@
-package com.example.vk.model;
+package com.example.vk.Api.model;
 
 import com.google.gson.annotations.SerializedName;
 import com.vk.sdk.api.docs.dto.DocsDocPreview;

@@ -10,15 +10,20 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.vk.CommentActivity;
 import com.example.vk.R;
-import com.example.vk.model.WallComment;
+import com.example.vk.Api.model.WallComment;
+import com.example.vk.data.Entities.Comment;
+import com.example.vk.data.Entities.User;
+
 import java.util.List;
 
 public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHolder>{
 
-    private final List<WallComment> data;
+    private final List<Comment> data;
+    private final List<User> users;
 
-    public CommentsAdapter(List<WallComment> data, CommentActivity na) {
+    public CommentsAdapter(List<Comment> data, CommentActivity na) {
         this.data = data;
+        users = na.users;
     }
     public static class ViewHolder extends RecyclerView.ViewHolder{
 
@@ -39,9 +44,10 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        WallComment item = data.get(position);
-        holder.authorName.setText(item.fromId.toString());
-        holder.textContent.setText(item.text);
+        Comment item = data.get(position);
+        User curUser = users.stream().filter(userItem -> userItem.getId() == item.getFrom().longValue()).findFirst().orElse(null);
+        holder.authorName.setText(curUser.getName());
+        holder.textContent.setText(item.getText());
     }
 
     @Override

@@ -1,9 +1,6 @@
 package com.example.vk;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
@@ -14,34 +11,32 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.room.Room;
 
 import com.example.vk.Api.VKGetCommentsCommand;
 import com.example.vk.Api.VKSendCommentCommand;
+import com.example.vk.Api.VKUsersCommand;
 import com.example.vk.adapters.CommentsAdapter;
-import com.example.vk.adapters.NewsFeedAdapter;
-import com.example.vk.model.ContentType;
-import com.example.vk.model.NewsPost;
-import com.example.vk.model.WallComment;
+import com.example.vk.data.AppData;
+import com.example.vk.data.DAO.UserDAO;
+import com.example.vk.data.Entities.Comment;
+import com.example.vk.data.Entities.NewsPost;
+import com.example.vk.data.Entities.User;
+import com.example.vk.tools.AsyncTasks;
 import com.google.gson.Gson;
 import com.vk.api.sdk.VK;
 import com.vk.api.sdk.VKApiCallback;
-import com.vk.api.sdk.utils.VKUtils;
-import com.vk.sdk.api.docs.dto.DocsDocPreviewPhotoSizes;
-import com.vk.sdk.api.wall.dto.WallWallpostAttachmentType;
 
-import java.io.InputStream;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class CommentActivity  extends AppCompatActivity {
-
     @BindView(R.id.comment_lines)
-    RecyclerView commentsItem;
+    public RecyclerView commentsItem;
+    public List<User> users;
 
     @BindView(R.id.post_text)
     TextView textContent;
@@ -56,57 +51,63 @@ public class CommentActivity  extends AppCompatActivity {
     EditText commentText;
     @BindView(R.id.post_comment)
     Button btn;
-
+    public static CommentActivity na;
+    public UserDAO userDAO;
+    public ArrayList<Integer> usersIds = new ArrayList<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.comment_list);
         ButterKnife.bind(this);
-
+        AppData db = Room.databaseBuilder(this, AppData.class, "mydb").enableMultiInstanceInvalidation().build();
+        userDAO = db.userDAO();
         String jsonMyObject = null;
+        String jsonMyObject2 = null;
+        na = this;
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
             jsonMyObject = extras.getString("newsItem");
         }
         NewsPost item = new Gson().fromJson(jsonMyObject, NewsPost.class);
-        authorName.setText(item.sourceId.toString());
-        textContent.setText(item.text);
-        for (ContentType content:
-                item.attachments) {
-            if(content.type == WallWallpostAttachmentType.PHOTO) {
-                String url = content.photo.sizes.get(content.photo.sizes.size()-1).getUrl();
-                try {
-                    new DownLoadImageTask(image).execute(url);
-                } catch (Exception e) {
-                    break;
-                }
-                break;
-            }
-            else if(content.type == WallWallpostAttachmentType.DOC && content.doc.type == 4) {
-                List<DocsDocPreviewPhotoSizes> s = content.doc.preview.getPhoto().getSizes();
-                DocsDocPreviewPhotoSizes ls = s.get(s.size() - 1);
-                String url = ls.getSrc();
-                try {
-                    new DownLoadImageTask(image).execute(url);
-                } catch (Exception e) {
-                    break;
-                }
-                break;
-            }
+
+        authorName.setText(item.getUserName());
+        textContent.setText(item.getText());
+
+        if(item.getImageLink() != null && item.getImageBitmap() == null) {
+
+            new AsyncTasks.DownLoadImageTask(image, item).execute(item.getImageLink());
+        }
+        else if(item.getImageBitmap() != null){
+            image.setImageBitmap(item.getImageBitmap());
+        }
+        else{
+            image.setImageBitmap(item.getImageBitmap());
         }
 
 
-        ArrayList<WallComment> commentsList = new ArrayList();
+        ArrayList<Comment> commentsList = new ArrayList();
         CommentActivity na = this;
         Context cntx = this;
 
-        VKGetCommentsCommand vkl = new VKGetCommentsCommand(item.id, item.sourceId );
-        VK.execute(vkl, new VKApiCallback<List<WallComment>>() {
+        VKGetCommentsCommand vkl = new VKGetCommentsCommand(item.getId(), item.getSourceId() , this);
+        VK.execute(vkl, new VKApiCallback<List<Comment>>() {
             @Override
-            public void success(List<WallComment> comments) {
-                commentsList.addAll(comments);
-                commentsItem.setAdapter(new CommentsAdapter(commentsList, na));
-                commentsItem.setLayoutManager(new LinearLayoutManager(cntx));
+            public void success(List<Comment> comments) {
+                VKUsersCommand f = new VKUsersCommand(usersIds);
+                VK.execute(f, new VKApiCallback<List<User>>() {
+                    @Override
+                    public void success(List<User> friendsFriendsLists) {
+                        users = friendsFriendsLists;
+                        commentsList.addAll(comments);
+                        commentsItem.setAdapter(new CommentsAdapter(commentsList, na));
+                        commentsItem.setLayoutManager(new LinearLayoutManager(cntx));
+                    }
+
+                    @Override
+                    public void fail(@NonNull Exception e) {
+
+                    }
+                });
             }
 
             @Override
@@ -118,17 +119,30 @@ public class CommentActivity  extends AppCompatActivity {
 
             commentsList.clear();
 
-            VKSendCommentCommand vksc = new VKSendCommentCommand(item.id, item.sourceId, commentText.getText().toString());
+            VKSendCommentCommand vksc = new VKSendCommentCommand(item.getId(), item.getSourceId() , commentText.getText().toString());
             VK.execute(vksc, new VKApiCallback<Integer>() {
                 @Override
                 public void success(Integer comments) {
-                    VKGetCommentsCommand vkl = new VKGetCommentsCommand(item.id, item.sourceId );
-                    VK.execute(vkl, new VKApiCallback<List<WallComment>>() {
+                    VKGetCommentsCommand vkl = new VKGetCommentsCommand(item.getId(), item.getSourceId(), na  );
+                    VK.execute(vkl, new VKApiCallback<List<Comment>>() {
                         @Override
-                        public void success(List<WallComment> comments) {
-                            commentsList.addAll(comments);
-                            commentsItem.setAdapter(new CommentsAdapter(commentsList, na));
-                            commentsItem.setLayoutManager(new LinearLayoutManager(cntx));
+                        public void success(List<Comment> comments) {
+                            VKUsersCommand f = new VKUsersCommand(usersIds);
+                            VK.execute(f, new VKApiCallback<List<User>>() {
+                                @Override
+                                public void success(List<User> friendsFriendsLists) {
+                                    users = friendsFriendsLists;
+                                    commentsList.addAll(comments);
+                                    commentsItem.setAdapter(new CommentsAdapter(commentsList, na));
+                                    commentsItem.setLayoutManager(new LinearLayoutManager(cntx));
+                                }
+
+                                @Override
+                                public void fail(@NonNull Exception e) {
+
+                                }
+                            });
+
                         }
 
                         @Override
@@ -146,30 +160,5 @@ public class CommentActivity  extends AppCompatActivity {
 
         });
 
-    }
-
-    private class DownLoadImageTask extends AsyncTask<String,Void, Bitmap> {
-        ImageView imageView;
-
-        public DownLoadImageTask(ImageView imageView){
-            this.imageView = imageView;
-        }
-
-        protected Bitmap doInBackground(String...urls){
-            String urlOfImage = urls[0];
-            Bitmap logo = null;
-            try{
-                InputStream is = new URL(urlOfImage)
-                        .openStream();
-                logo = BitmapFactory.decodeStream(is);
-            }catch(Exception e){ // Catch the download exception
-                e.printStackTrace();
-            }
-            return logo;
-        }
-
-        protected void onPostExecute(Bitmap result){
-            imageView.setImageBitmap(result);
-        }
     }
 }

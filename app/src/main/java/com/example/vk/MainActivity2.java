@@ -3,33 +3,26 @@ package com.example.vk;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.Button;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.room.Room;
 
-import com.example.vk.Api.VKFriendsCommand;
 import com.example.vk.Api.VKGetNewsCommands;
-import com.example.vk.adapters.NewsFeedAdapter;
-import com.example.vk.model.NewsPost;
+import com.example.vk.data.AppData;
+import com.example.vk.data.DAO.NewsPostDAO;
+import com.example.vk.data.DAO.UserDAO;
+import com.example.vk.data.Entities.NewsPost;
+import com.example.vk.data.Entities.User;
+import com.example.vk.tools.AsyncTasks;
 import com.google.gson.Gson;
 import com.vk.api.sdk.VK;
 import com.vk.api.sdk.VKApiCallback;
-import com.vk.api.sdk.VKApiManager;
-import com.vk.api.sdk.auth.VKAccessToken;
-import com.vk.api.sdk.exceptions.VKApiException;
-import com.vk.api.sdk.internal.ApiCommand;
-import com.vk.api.sdk.requests.VKRequest;
-import com.vk.sdk.api.friends.dto.FriendsFriendsList;
-import com.vk.sdk.api.newsfeed.dto.NewsfeedNewsfeedItem;
-import com.vk.sdk.api.users.dto.UsersFields;
 
-import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
@@ -38,25 +31,40 @@ import butterknife.ButterKnife;
 public class MainActivity2 extends AppCompatActivity {
 
     @BindView(R.id.news_line)
-    RecyclerView news;
+    public RecyclerView news;
 
+    public static String StartFrom;
+
+    public NewsPostDAO newsPostDAO;
+
+    public UserDAO userDAO;
+
+    public List<User> users;
+    public List<NewsPost> newsPosts;
+    public static MainActivity2 na;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main2);
         ButterKnife.bind(this);
-        ArrayList<NewsPost> friends = new ArrayList<>();
+        Context context = this;
+        context.deleteDatabase("mydb");
+        AppData db = Room.databaseBuilder(this, AppData.class, "mydb").enableMultiInstanceInvalidation().build();
+        userDAO = db.userDAO();
+        newsPostDAO =  db.newsPostDAO();
         Instant now = Instant.now();
         Instant yesterday = now.minus(1, ChronoUnit.DAYS);
-        Context cntx = this;
-        MainActivity2 na = this;
-        VKGetNewsCommands f = new VKGetNewsCommands(yesterday.toEpochMilli()/1000L, 0L, 1000, 0L);
+        na = this;
+        news.setLayoutManager(new LinearLayoutManager(na));
+        VKGetNewsCommands f = new VKGetNewsCommands(yesterday.toEpochMilli()/1000L, 0L, 10, 0L);
         VK.execute(f, new VKApiCallback<List<NewsPost>>() {
             @Override
             public void success(List<NewsPost> friendsFriendsLists) {
-                friends.addAll(friendsFriendsLists);
-                news.setAdapter(new NewsFeedAdapter(friends, na));
-                news.setLayoutManager(new LinearLayoutManager(cntx));
+                new AsyncTasks.TaskGetUsers(MainActivity2.na).execute();
+                new AsyncTasks.TaskInsertPosts(MainActivity2.na, friendsFriendsLists).execute();
+                new AsyncTasks.TaskGetPosts(MainActivity2.na).execute();
+
+
             }
 
             @Override
@@ -65,9 +73,16 @@ public class MainActivity2 extends AppCompatActivity {
             }
         });
     }
+     @Override
+     protected void onStart() {
+         super.onStart();
+
+     }
     public void CommentsOpen(NewsPost post){
         Intent intent = new Intent(this, CommentActivity.class);
         intent.putExtra("newsItem", new Gson().toJson(post));
+        intent.putExtra("users", new Gson().toJson(users));
         startActivity(intent);
     }
+
 }

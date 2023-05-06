@@ -2,7 +2,6 @@ package com.example.vk.Api;
 
 import androidx.annotation.NonNull;
 
-import com.example.vk.model.WallComment;
 import com.vk.api.sdk.VKApiJSONResponseParser;
 import com.vk.api.sdk.VKApiManager;
 import com.vk.api.sdk.VKMethodCall;
@@ -14,8 +13,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class VKSendCommentCommand extends ApiCommand{
     private Integer postId;

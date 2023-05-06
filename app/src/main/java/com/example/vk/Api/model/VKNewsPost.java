@@ -1,23 +1,16 @@
-package com.example.vk.model;
-
-import android.view.View;
-
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
+package com.example.vk.Api.model;
 
 import com.google.gson.annotations.SerializedName;
-import com.vk.dto.common.id.UserId;
 import com.vk.sdk.api.base.dto.BaseBoolInt;
 import com.vk.sdk.api.base.dto.BaseCommentsInfo;
 import com.vk.sdk.api.base.dto.BaseLikesInfo;
 import com.vk.sdk.api.base.dto.BaseRepostsInfo;
 import com.vk.sdk.api.newsfeed.dto.NewsfeedNewsfeedItemType;
 import com.vk.sdk.api.wall.dto.WallPostType;
-import com.vk.sdk.api.wall.dto.WallWallpostAttachment;
 
 import java.util.List;
 
-public class NewsPost {
+public class VKNewsPost {
     @SerializedName("type")
     public NewsfeedNewsfeedItemType type;
     @SerializedName("source_id")
